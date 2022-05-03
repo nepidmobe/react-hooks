@@ -9,6 +9,10 @@ const url = "https://course-api.com/javascript-store-products";
 const Index = () => {
   const { products } = useFetch(url);
   const [count, setCount] = useState(0);
+  const [cart, setCart] = useState(0);
+  const addToCart = useCallback(() => {
+    setCart(cart + 1);
+  }, [cart]);
 
   return (
     <>
@@ -16,27 +20,37 @@ const Index = () => {
       <button className="btn" onClick={() => setCount(count + 1)}>
         click me
       </button>
-      <BigList products={products} />
+
+      <h1 style={{ marginTop: "3rem" }}>cart : {cart}</h1>
+      {/* if we don't use useCallback, addToCart function will get created from scratch and  */}
+      {/* props changes below but now we create this function only when we update cart value. */}
+      <BigList products={products} addToCart={addToCart} />
     </>
   );
 };
 
-const BigList = React.memo(({ products }) => {
-  return (
-    <section className="products">
-      {products.map((product) => {
-        return <SingleProduct key={product.id} {...product}></SingleProduct>;
-      })}
-    </section>
-  );
-});
-
-const SingleProduct = ({ fields }) => {
+const BigList = React.memo(({ products, addToCart }) => {
   //checking 12 time rerenders for eact count button pressed even count logicc different from this...
   //useState always preserve and rerenders the component where it is executed
   //hence used React.memo(component wrapped) to catch outcome of that component memoizing
   //it means if value of product doesnot change don't rerender this component even state or props trigger to rerender.
   //child of React.memo also don't rerender.
+  return (
+    <section className="products">
+      {products.map((product) => {
+        return (
+          <SingleProduct
+            key={product.id}
+            {...product}
+            addToCart={addToCart}
+          ></SingleProduct>
+        );
+      })}
+    </section>
+  );
+});
+
+const SingleProduct = ({ fields, addToCart }) => {
   console.log("a");
   let { name, price } = fields;
   price = price / 100;
@@ -47,6 +61,7 @@ const SingleProduct = ({ fields }) => {
       <img src={image} alt={name} />
       <h4>{name}</h4>
       <p>${price}</p>
+      <button onClick={addToCart}>add to cart</button>
     </article>
   );
 };
